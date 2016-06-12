@@ -66,7 +66,8 @@ struct ieee80211_frame {
 	uint8_t		i_addr2[IEEE80211_ADDR_LEN];
 	uint8_t		i_addr3[IEEE80211_ADDR_LEN];
 	uint8_t		i_seq[2];
-	/* possibly followed by addr4[IEEE80211_ADDR_LEN]; */
+        uint8_t         i_addr4[IEEE80211_ADDR_LEN]; // + for addr4
+        /* possibly followed by addr4[IEEE80211_ADDR_LEN]; */
 	/* see below */
 };
 
