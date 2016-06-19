@@ -7,12 +7,13 @@
 
 #define RADIOTAPLEN *(data + 2)
 
-void IEEE80211_Frame_Parser(const u_char *data);
-void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh);
+void IEEE80211_Frame_Parser(const u_char *data, pcap_pkthdr *pkthdr);
+void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *pkthdr);
 void IEEE80211_CTL_Frame(const u_char *data, ieee80211_frame *fdh);
 void IEEE80211_DATA_Frame(const u_char *data, ieee80211_frame *fdh);
 
 ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data);
+void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr);
 
 QString MacADDR(u_int8_t* ADDR);
 
@@ -34,13 +35,11 @@ int main(int argc, char *argv[])
     {
         pcap_next_ex(handle, &pkthdr, &data);
 
-        IEEE80211_Frame_Parser(data);
+        IEEE80211_Frame_Parser(data, pkthdr);
     }
 }
 
-void IEEE80211_Frame_Parser(const u_char *data) {
-    int radiotapLen = *(data + 2);
-
+void IEEE80211_Frame_Parser(const u_char *data, pcap_pkthdr *pkthdr) {
     /* Distribute System (DS) */
     ieee80211_frame *fdh = IEEE80211_DS_ADDR(data);
 
@@ -49,7 +48,7 @@ void IEEE80211_Frame_Parser(const u_char *data) {
     {
         case IEEE80211_FC0_TYPE_MGT:    /* Management Frame */
             qDebug() << "Management";
-            IEEE80211_MGT_Frame(data, fdh);
+            IEEE80211_MGT_Frame(data, fdh, pkthdr);
             break;
 
         case IEEE80211_FC0_TYPE_CTL:    /* Control Frame */
@@ -67,7 +66,7 @@ void IEEE80211_Frame_Parser(const u_char *data) {
     }
 }
 
-void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh) {
+void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *pkthdr) {
     /* Management Frame Subtype */
     switch(fdh->i_fc[0] & IEEE80211_FC0_SUBTYPE_MASK)
     {
@@ -162,8 +161,20 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh) {
             break;
     }
 
+    datapoint += 12;
+
+
     /* tagged parameters */
 
+    IEEE80211_Information_Elements(data, datapoint, pkthdr);
+
+//    QString SSID;
+//    int SSIDLen = *(data + datapoint + 1);
+//    for (int i = SSIDLen; i; --i)
+//    {
+//        SSID.append(*(data + datapoint + 1 + i));
+//    }
+//    qDebug() << SSID;
 }
 
 void IEEE80211_CTL_Frame(const u_char *data, ieee80211_frame *fdh) {
@@ -276,6 +287,120 @@ ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data) {
     }
 
     return fdh;
+}
+
+void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr) {
+    /* Check Elements ID */
+    while(datapoint < (int)pkthdr->caplen)
+    {
+
+        int ELEMID = *(data + datapoint);
+        ++datapoint;
+        int ELELen = *(data + datapoint);
+        ++datapoint;
+
+        qDebug() << ELEMID << ELELen;
+
+        switch( ELEMID )
+        {
+            case IEEE80211_ELEMID_SSID:
+//                {
+//                    QString SSID;
+//                    int SSIDLen = *(data + datapoint + 1);
+//                    for (int i = SSIDLen; i; --i)
+//                    {
+//                        SSID.append(*(data + datapoint + 1 + i));
+//                    }
+//                    qDebug() << SSID;
+//                    break;
+//                }
+
+            case IEEE80211_ELEMID_RATES:
+                break;
+
+            case IEEE80211_ELEMID_FHPARMS:
+                break;
+
+            case IEEE80211_ELEMID_DSPARMS:
+                break;
+
+            case IEEE80211_ELEMID_CFPARMS:
+                break;
+
+            case IEEE80211_ELEMID_TIM:
+                break;
+
+            case IEEE80211_ELEMID_IBSSPARMS:
+                break;
+
+            case IEEE80211_ELEMID_COUNTRY:
+                break;
+
+            case IEEE80211_ELEMID_CHALLENGE:
+                break;
+
+            case IEEE80211_ELEMID_PWRCNSTR:
+                break;
+
+            case IEEE80211_ELEMID_PWRCAP:
+                break;
+
+            case IEEE80211_ELEMID_TPCREQ:
+                break;
+
+            case IEEE80211_ELEMID_TPCREP:
+                break;
+
+            case IEEE80211_ELEMID_SUPPCHAN:
+                break;
+
+            case IEEE80211_ELEMID_CSA:
+                break;
+
+            case IEEE80211_ELEMID_MEASREQ:
+                break;
+
+            case IEEE80211_ELEMID_MEASREP:
+                break;
+
+            case IEEE80211_ELEMID_QUIET:
+                break;
+
+            case IEEE80211_ELEMID_IBSSDFS:
+                break;
+
+            case IEEE80211_ELEMID_ERP:
+                break;
+
+            case IEEE80211_ELEMID_HTCAP:
+                break;
+
+            case IEEE80211_ELEMID_QOS:
+                break;
+
+            case IEEE80211_ELEMID_RSN:
+                break;
+
+            case IEEE80211_ELEMID_XRATES:
+                break;
+
+            case IEEE80211_ELEMID_HTINFO:
+                break;
+
+            case IEEE80211_ELEMID_TPC:
+                break;
+
+            case IEEE80211_ELEMID_CCKM:
+                break;
+
+            case IEEE80211_ELEMID_VENDOR:
+                break;
+        }
+
+        datapoint += ELELen;
+
+    }
+
 }
 
 QString MacADDR(u_int8_t* ADDR) {
