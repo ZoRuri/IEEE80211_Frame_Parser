@@ -117,9 +117,7 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
     qDebug() << "Timestamp:" << hex << *((u_int64_t*)(data + datapoint));
     qDebug() << "Beacon Interval:" << IEEE80211_BEACON_INTERVAL(data + datapoint) * 1.024 << "ms";
 
-    /* Capabilities Information */
-
-    switch (IEEE80211_BEACON_CAPABILITY(data + datapoint) & 0xFFFF)
+    switch (IEEE80211_BEACON_CAPABILITY(data + datapoint) & 0xFFFF) /* Capabilities Information */
     {
         case IEEE80211_CAPINFO_ESS:
             break;
@@ -163,18 +161,10 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
 
     datapoint += 12;
 
-
     /* tagged parameters */
 
     IEEE80211_Information_Elements(data, datapoint, pkthdr);
 
-//    QString SSID;
-//    int SSIDLen = *(data + datapoint + 1);
-//    for (int i = SSIDLen; i; --i)
-//    {
-//        SSID.append(*(data + datapoint + 1 + i));
-//    }
-//    qDebug() << SSID;
 }
 
 void IEEE80211_CTL_Frame(const u_char *data, ieee80211_frame *fdh) {
@@ -299,35 +289,47 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
         int ELELen = *(data + datapoint);
         ++datapoint;
 
-        qDebug() << ELEMID << ELELen;
-
-        switch( ELEMID )
+        switch(ELEMID)
         {
             case IEEE80211_ELEMID_SSID:
-//                {
-//                    QString SSID;
-//                    int SSIDLen = *(data + datapoint + 1);
-//                    for (int i = SSIDLen; i; --i)
-//                    {
-//                        SSID.append(*(data + datapoint + 1 + i));
-//                    }
-//                    qDebug() << SSID;
-//                    break;
-//                }
+                {
+                    QString SSID;
+                    int SSIDLen = ELELen;
+                    for (int i = 0; i < SSIDLen; ++i)
+                    {
+                        SSID.append(*(data + datapoint + i));
+                    }
+                    qDebug() << SSID;
+                    break;
+                }
 
-            case IEEE80211_ELEMID_RATES:
+            case IEEE80211_ELEMID_RATES:        /* Supported Rate 500Kbps */
+            /*
+             * 802.11b is started by 0x80   ex) 0x82 = 1Mbps
+             */
+                {
+                    double Rates[ELELen];
+                    for (int i = 0; i < ELELen; ++i)
+                    {
+                        if (*(data + datapoint + i) & 0x80)     /* 802.11b */
+                            Rates[i] = (double)(*(data + datapoint + i) - 0x80)/2;
+                        else
+                            Rates[i] = (*(data + datapoint + i)) >> 1;
+                    }
+                }
                 break;
 
             case IEEE80211_ELEMID_FHPARMS:
                 break;
 
-            case IEEE80211_ELEMID_DSPARMS:
+            case IEEE80211_ELEMID_DSPARMS:      /* DS Prameter Set (Channel) */
+                qDebug() << "Channel:" << *(data + datapoint + 2);
                 break;
 
             case IEEE80211_ELEMID_CFPARMS:
                 break;
 
-            case IEEE80211_ELEMID_TIM:
+            case IEEE80211_ELEMID_TIM:          /* Traffic Indication Map */
                 break;
 
             case IEEE80211_ELEMID_IBSSPARMS:
@@ -379,6 +381,36 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
                 break;
 
             case IEEE80211_ELEMID_RSN:
+            /*
+             *  RSN Cipher Suite       RSN Auth Key Management
+             *  1  WEP                 1  802.1X
+             *  2  TKIP                2  PSK
+             *  3  WRAP                3  FT over 802.1X
+             *  4  CCMP
+             *  5  WEP-104
+             *
+             */
+                {
+                    qDebug() << "RSN Version:" << *(data + datapoint);
+                    switch (*(data + datapoint + 3))    /* Group Cipher Type */
+                    {
+                        case 1:
+                            break;
+
+                        case 2:
+                            break;
+
+                        case 3:
+                            break;
+
+                        case 4:
+                            break;
+
+                        case 5:
+                            break;
+
+                    }
+                }
                 break;
 
             case IEEE80211_ELEMID_XRATES:
