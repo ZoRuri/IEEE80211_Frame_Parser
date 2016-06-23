@@ -16,6 +16,10 @@ ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data);
 void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr);
 
 QString MacADDR(u_int8_t* ADDR);
+QString RSN_MacOUI(u_int8_t* OUI);
+
+const char* RSN_Cipher_Suite(int type);
+const char* RSN_Auth_Key(int type);
 
 int main(int argc, char *argv[])
 {
@@ -294,8 +298,8 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_SSID:
                 {
                     QString SSID;
-                    int SSIDLen = ELELen;
-                    for (int i = 0; i < SSIDLen; ++i)
+                    unsigned int SSIDLen = ELELen;
+                    for (unsigned int i = 0; i < SSIDLen; ++i)
                     {
                         SSID.append(*(data + datapoint + i));
                     }
@@ -380,35 +384,24 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_QOS:
                 break;
 
-            case IEEE80211_ELEMID_RSN:
-            /*
-             *  RSN Cipher Suite       RSN Auth Key Management
-             *  1  WEP                 1  802.1X
-             *  2  TKIP                2  PSK
-             *  3  WRAP                3  FT over 802.1X
-             *  4  CCMP
-             *  5  WEP-104
-             *
-             */
+            case IEEE80211_ELEMID_RSN:  /* need bug fix */
                 {
-                    qDebug() << "RSN Version:" << *(data + datapoint);
-                    switch (*(data + datapoint + 3))    /* Group Cipher Type */
+                    int offset;
+//                    u_int8_t OUI[3];
+                    qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));    offset += 2;
+                    /*qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(*(data + datapoint + offset));*/   offset += 3;
+                    qDebug() << "Group_Cipher" << RSN_Cipher_Suite((int)*(data + datapoint + offset));  offset += 1;
+                    int PairwireCount = *((u_int16_t*)(data + datapoint + offset));     offset += 2;
+                    for (int i = 0; i < PairwireCount; ++i)
                     {
-                        case 1:
-                            break;
-
-                        case 2:
-                            break;
-
-                        case 3:
-                            break;
-
-                        case 4:
-                            break;
-
-                        case 5:
-                            break;
-
+//                        qDebug() << "Pairwire OUI"; offset += 3
+                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + 11 + 4 * i));
+                    }
+                    int AuthCount = *(data + datapoint + 8 + 4 * PairwireCount);
+                    qDebug() << "AuthCount:" << AuthCount;
+                    for (int i = 0; i < AuthCount; ++i)
+                    {
+//                        qDebug() << "Auth:" << RSN_Auth_Key();
                     }
                 }
                 break;
@@ -441,4 +434,54 @@ QString MacADDR(u_int8_t* ADDR) {
     MacADDR.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", ADDR[0], ADDR[1], ADDR[2], ADDR[3], ADDR[4], ADDR[5]);
 
     return MacADDR;
+}
+
+QString RSN_MacOUI(u_int8_t* OUI) {
+    QString MacOUI;
+
+    MacOUI.sprintf("%02X-%02X-%02X", OUI[0], OUI[1], OUI[2]);
+
+    return MacOUI;
+}
+
+const char* RSN_Cipher_Suite(int type) {
+    /*
+     *  RSN Cipher Suite
+     *  1  WEP
+     *  2  TKIP
+     *  3  WRAP
+     *  4  CCMP
+     *  5  WEP-104
+     */
+    const char* typeList[] = {"",
+        "WEP",
+        "TKIP",
+        "WRAP",
+        "CCMP",
+        "WEP-104",
+    };
+
+    if (type <= 5)
+        return typeList[type];
+    else
+        return 0;
+}
+
+const char* RSN_Auth_Key(int type) {
+    /*
+     *  RSN Auth Key Management
+     *  1  802.1X
+     *  2  PSK
+     *  3  FT over 802.1X
+     */
+    const char* typeList[] = {"",
+        "802.1X",
+        "PSK",
+        "FT over 802.1X",
+    };
+
+    if (type <= 3)
+        return typeList[type];
+    else
+        return 0;
 }
