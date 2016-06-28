@@ -285,7 +285,7 @@ ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data) {
 
 void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr) {
     /* Check Elements ID */
-    while(datapoint < (int)pkthdr->caplen)
+    while(datapoint < (int)pkthdr->caplen - 4)      /* Packet Length - Frame check sequence(4) */
     {
 
         int ELEMID = *(data + datapoint);
@@ -384,7 +384,7 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_QOS:
                 break;
 
-            case IEEE80211_ELEMID_RSN:  /* need bug fix */
+            case IEEE80211_ELEMID_RSN:
                 {
                     int offset;
 //                    u_int8_t OUI[3];
@@ -394,14 +394,14 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
                     int PairwireCount = *((u_int16_t*)(data + datapoint + offset));     offset += 2;
                     for (int i = 0; i < PairwireCount; ++i)
                     {
-//                        qDebug() << "Pairwire OUI"; offset += 3
-                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + 11 + 4 * i));
+                       /* qDebug() << "Pairwire OUI"; */ offset += 3;
+                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + offset));  offset += 1;
                     }
-                    int AuthCount = *(data + datapoint + 8 + 4 * PairwireCount);
-                    qDebug() << "AuthCount:" << AuthCount;
+                    int AuthCount = *((u_int16_t*)(data + datapoint + offset)); offset += 2;
                     for (int i = 0; i < AuthCount; ++i)
                     {
-//                        qDebug() << "Auth:" << RSN_Auth_Key();
+                        offset += 3;
+                        qDebug() << "Auth:" << RSN_Auth_Key(*(data + datapoint + offset));  offset += 1;
                     }
                 }
                 break;
