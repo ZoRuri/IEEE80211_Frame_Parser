@@ -16,7 +16,7 @@ ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data);
 void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr);
 
 QString MacADDR(u_int8_t* ADDR);
-QString RSN_MacOUI(u_int8_t* OUI);
+QString RSN_MacOUI(const u_char* OUI);
 
 const char* RSN_Cipher_Suite(int type);
 const char* RSN_Auth_Key(int type);
@@ -166,6 +166,8 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
     datapoint += 12;
 
     /* tagged parameters */
+
+    qDebug() << "mgt datapoint" << datapoint;
 
     IEEE80211_Information_Elements(data, datapoint, pkthdr);
 
@@ -387,14 +389,13 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_RSN:
                 {
                     int offset;
-//                    u_int8_t OUI[3];
                     qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));    offset += 2;
-                    /*qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(*(data + datapoint + offset));*/   offset += 3;
+                    qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(&*(data + datapoint + offset));   offset += 3;
                     qDebug() << "Group_Cipher" << RSN_Cipher_Suite((int)*(data + datapoint + offset));  offset += 1;
                     int PairwireCount = *((u_int16_t*)(data + datapoint + offset));     offset += 2;
                     for (int i = 0; i < PairwireCount; ++i)
                     {
-                       /* qDebug() << "Pairwire OUI"; */ offset += 3;
+                        qDebug() << "Pairwire OUI" << RSN_MacOUI(&*(data + datapoint + offset));  offset += 3;
                         qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + offset));  offset += 1;
                     }
                     int AuthCount = *((u_int16_t*)(data + datapoint + offset)); offset += 2;
@@ -436,7 +437,7 @@ QString MacADDR(u_int8_t* ADDR) {
     return MacADDR;
 }
 
-QString RSN_MacOUI(u_int8_t* OUI) {
+QString RSN_MacOUI(const u_char* OUI) {
     QString MacOUI;
 
     MacOUI.sprintf("%02X-%02X-%02X", OUI[0], OUI[1], OUI[2]);
