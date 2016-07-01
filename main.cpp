@@ -8,6 +8,7 @@
 #define RADIOTAPLEN *(data + 2)
 
 void IEEE80211_Frame_Parser(const u_char *data, pcap_pkthdr *pkthdr);
+
 void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *pkthdr);
 void IEEE80211_CTL_Frame(const u_char *data, ieee80211_frame *fdh);
 void IEEE80211_DATA_Frame(const u_char *data, ieee80211_frame *fdh);
@@ -20,6 +21,10 @@ QString RSN_MacOUI(const u_char* OUI);
 
 const char* RSN_Cipher_Suite(int type);
 const char* RSN_Auth_Key(int type);
+
+void MGT_Timestamp(const u_char *data, int datapoint);
+void MGT_Beacon_Interval(const u_char *data, int datapoint);
+void MGT_Capability_Info(const u_char *data, int datapoint);
 
 int main(int argc, char *argv[])
 {
@@ -71,40 +76,78 @@ void IEEE80211_Frame_Parser(const u_char *data, pcap_pkthdr *pkthdr) {
 }
 
 void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *pkthdr) {
-    /* Management Frame Subtype */
+    /*
+     *  Management frame subtype's fixed parameters contents
+     *
+     *               | AUTH_ALGO | AUTH_SEQ  | TIMESTAMP | BCON_ITVL | CPB_INFO  | LSTN_ITVL | CRNT_AP   | REASON | STATUS | AID |
+     *  ASSOC_REQ    |           |           |           |           |     o     |     o     |           |        |        |     |
+     *  ASSOC_RESP   |           |           |           |           |     o     |           |           |        |    o   |  o  |
+     *  REASSOC_REQ  |           |           |           |           |     o     |     o     |     o     |        |        |     |
+     *  REASSOC_RESP |           |           |           |           |     o     |           |           |        |    o   |  o  |
+     *  PROBE_REQ    |           |           |           |           |           |           |           |        |        |     |
+     *  PROBE_RESP   |           |           |     o     |     o     |     o     |           |           |        |        |     |
+     *  BEACON       |           |           |     o     |     o     |     o     |           |           |        |        |     |
+     *  DISASSOC     |           |           |           |           |           |           |           |    o   |        |     |
+     *  AUTH         |     o     |     o     |           |           |           |           |           |        |    o   |     |
+     *  DEAUTH       |           |           |           |           |           |           |           |    o   |        |     |
+     *  ATIM         |           |           |           |           |           |           |           |        |        |     |
+     */
+
+    int datapoint = RADIOTAPLEN + sizeof(*fdh); /* radiotap length + frame lenth */
+
+    /*  Management Frame Subtype */
     switch(fdh->i_fc[0] & IEEE80211_FC0_SUBTYPE_MASK)
     {
         case IEEE80211_FC0_SUBTYPE_ASSOC_REQ:
+            datapoint += 4;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ASSOC_RESP:
+            datapoint += 6;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_REQ:
+            datapoint += 6;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_RESP:
+            datapoint += 6;
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_REQ:
+            qDebug() << "probe req" << datapoint;
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_RESP:
+            MGT_Timestamp(data, datapoint);
+            MGT_Beacon_Interval(data, datapoint);
+            MGT_Capability_Info(data, datapoint);
+            datapoint += 12;
             break;
 
         case IEEE80211_FC0_SUBTYPE_BEACON:
+//            qDebug() << "Timestamp:" << hex << *((u_int64_t*)(data + datapoint));
+//            qDebug() << "Beacon Interval:" << IEEE80211_BEACON_INTERVAL(data + datapoint) * 1.024 << "ms";
+            MGT_Timestamp(data, datapoint);
+            MGT_Beacon_Interval(data, datapoint);
+            MGT_Capability_Info(data, datapoint);
+            datapoint += 12;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ATIM:
+            return;
             break;
 
         case IEEE80211_FC0_SUBTYPE_DISASSOC:
+            datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_AUTH:
+            datapoint += 6;
             break;
 
         case IEEE80211_FC0_SUBTYPE_DEAUTH:
+            datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ACTION:
@@ -114,61 +157,7 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
     }
 
-    int datapoint = *(data + 2) + sizeof(*fdh); /* radiotap length + frame lenth */
-
-    /* Fixed parameters (12 bytes) */
-
-    qDebug() << "Timestamp:" << hex << *((u_int64_t*)(data + datapoint));
-    qDebug() << "Beacon Interval:" << IEEE80211_BEACON_INTERVAL(data + datapoint) * 1.024 << "ms";
-
-    switch (IEEE80211_BEACON_CAPABILITY(data + datapoint) & 0xFFFF) /* Capabilities Information */
-    {
-        case IEEE80211_CAPINFO_ESS:
-            break;
-
-        case IEEE80211_CAPINFO_IBSS:
-            break;
-
-        case IEEE80211_CAPINFO_CF_POLLABLE:
-            break;
-
-        case IEEE80211_CAPINFO_CF_POLLREQ:
-            break;
-
-        case IEEE80211_CAPINFO_PRIVACY:         /* WEP */
-            break;
-
-        case IEEE80211_CAPINFO_SHORT_PREAMBLE:
-            break;
-
-        case IEEE80211_CAPINFO_PBCC:
-            break;
-
-        case IEEE80211_CAPINFO_CHNL_AGILITY:
-            break;
-
-        case IEEE80211_CAPINFO_SPECTRUM_MGMT:
-            break;
-
-        case IEEE80211_CAPINFO_SHORT_SLOTTIME:
-            break;
-
-        case IEEE80211_CAPINFO_RSN:
-            break;
-
-        case IEEE80211_CAPINFO_DSSSOFDM:
-            break;
-
-        default:
-            break;
-    }
-
-    datapoint += 12;
-
     /* tagged parameters */
-
-    qDebug() << "mgt datapoint" << datapoint;
-
     IEEE80211_Information_Elements(data, datapoint, pkthdr);
 
 }
@@ -329,7 +318,7 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
                 break;
 
             case IEEE80211_ELEMID_DSPARMS:      /* DS Prameter Set (Channel) */
-                qDebug() << "Channel:" << *(data + datapoint + 2);
+                qDebug() << "Channel:" << *(data + datapoint);
                 break;
 
             case IEEE80211_ELEMID_CFPARMS:
@@ -386,9 +375,9 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_QOS:
                 break;
 
-            case IEEE80211_ELEMID_RSN:
+            case IEEE80211_ELEMID_RSN:          /* Robust Secure Network (Encryption & Authentication) */
                 {
-                    int offset;
+                    int offset = 0;
                     qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));    offset += 2;
                     qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(&*(data + datapoint + offset));   offset += 3;
                     qDebug() << "Group_Cipher" << RSN_Cipher_Suite((int)*(data + datapoint + offset));  offset += 1;
@@ -407,7 +396,17 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
                 }
                 break;
 
-            case IEEE80211_ELEMID_XRATES:
+            case IEEE80211_ELEMID_XRATES:       /* Extended Supported Rates 500Kbps */
+                {
+                    double Rates[ELELen];
+                    for (int i = 0; i < ELELen; ++i)
+                    {
+                        if (*(data + datapoint + i) & 0x80)     /* 802.11b */
+                            Rates[i] = (double)(*(data + datapoint + i) - 0x80)/2;
+                        else
+                            Rates[i] = (*(data + datapoint + i)) >> 1;
+                    }
+                }
                 break;
 
             case IEEE80211_ELEMID_HTINFO:
@@ -485,4 +484,58 @@ const char* RSN_Auth_Key(int type) {
         return typeList[type];
     else
         return 0;
+}
+
+inline void MGT_Timestamp(const u_char *data, int datapoint) {
+    qDebug() << "Timestamp:" << hex << *((u_int64_t*)(data + datapoint));
+
+}
+
+inline void MGT_Beacon_Interval(const u_char *data, int datapoint) {
+    qDebug() << "Beacon Interval:" << IEEE80211_BEACON_INTERVAL(data + datapoint) * 1.024 << "ms";
+}
+
+void MGT_Capability_Info(const u_char *data, int datapoint) {
+    /* Capabilities Information */
+    switch (IEEE80211_BEACON_CAPABILITY(data + datapoint) & 0xFFFF)
+    {
+        case IEEE80211_CAPINFO_ESS:
+            break;
+
+        case IEEE80211_CAPINFO_IBSS:
+            break;
+
+        case IEEE80211_CAPINFO_CF_POLLABLE:
+            break;
+
+        case IEEE80211_CAPINFO_CF_POLLREQ:
+            break;
+
+        case IEEE80211_CAPINFO_PRIVACY:         /* WEP */
+            break;
+
+        case IEEE80211_CAPINFO_SHORT_PREAMBLE:
+            break;
+
+        case IEEE80211_CAPINFO_PBCC:
+            break;
+
+        case IEEE80211_CAPINFO_CHNL_AGILITY:
+            break;
+
+        case IEEE80211_CAPINFO_SPECTRUM_MGMT:
+            break;
+
+        case IEEE80211_CAPINFO_SHORT_SLOTTIME:
+            break;
+
+        case IEEE80211_CAPINFO_RSN:
+            break;
+
+        case IEEE80211_CAPINFO_DSSSOFDM:
+            break;
+
+        default:
+            break;
+    }
 }
