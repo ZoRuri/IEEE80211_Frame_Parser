@@ -103,7 +103,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_ASSOC_RESP:
-            datapoint += 6;
+            /* CPB Information */   datapoint += 2;
+            /* Status code */       datapoint += 2;
+            /* Association ID */    datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_REQ:
@@ -111,27 +113,25 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_RESP:
-            datapoint += 6;
+            /* CPB Information */   datapoint += 2;
+            /* Status code */       datapoint += 2;
+            /* Association ID */    datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_REQ:
-            qDebug() << "probe req" << datapoint;
+            /* NULL */
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_RESP:
             MGT_Timestamp(data, datapoint);
-            MGT_Beacon_Interval(data, datapoint);
-            MGT_Capability_Info(data, datapoint);
-            datapoint += 12;
+            MGT_Beacon_Interval(data, datapoint);   datapoint += 10;
+            MGT_Capability_Info(data, datapoint);   datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_BEACON:
-//            qDebug() << "Timestamp:" << hex << *((u_int64_t*)(data + datapoint));
-//            qDebug() << "Beacon Interval:" << IEEE80211_BEACON_INTERVAL(data + datapoint) * 1.024 << "ms";
             MGT_Timestamp(data, datapoint);
-            MGT_Beacon_Interval(data, datapoint);
-            MGT_Capability_Info(data, datapoint);
-            datapoint += 12;
+            MGT_Beacon_Interval(data, datapoint);   datapoint += 10;
+            MGT_Capability_Info(data, datapoint);   datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ATIM:
@@ -139,15 +139,17 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_DISASSOC:
-            datapoint += 2;
+            /* Reason code */   datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_AUTH:
-            datapoint += 6;
+            /* Auth Algo */     datapoint += 2;
+            /* Auth SEQ */      datapoint += 2;
+            /* Status code */   datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_DEAUTH:
-            datapoint += 2;
+            /* Reason code */   datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ACTION:
@@ -378,20 +380,20 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_RSN:          /* Robust Secure Network (Encryption & Authentication) */
                 {
                     int offset = 0;
-                    qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));    offset += 2;
-                    qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(&*(data + datapoint + offset));   offset += 3;
+                    qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));                    offset += 2;
+                    qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(&*(data + datapoint + offset));        offset += 3;
                     qDebug() << "Group_Cipher" << RSN_Cipher_Suite((int)*(data + datapoint + offset));  offset += 1;
-                    int PairwireCount = *((u_int16_t*)(data + datapoint + offset));     offset += 2;
+                    int PairwireCount = *((u_int16_t*)(data + datapoint + offset));                     offset += 2;
                     for (int i = 0; i < PairwireCount; ++i)
                     {
-                        qDebug() << "Pairwire OUI" << RSN_MacOUI(&*(data + datapoint + offset));  offset += 3;
-                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + offset));  offset += 1;
+                        qDebug() << "Pairwire OUI" << RSN_MacOUI(&*(data + datapoint + offset));        offset += 3;
+                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + offset));      offset += 1;
                     }
-                    int AuthCount = *((u_int16_t*)(data + datapoint + offset)); offset += 2;
+                    int AuthCount = *((u_int16_t*)(data + datapoint + offset));                         offset += 2;
                     for (int i = 0; i < AuthCount; ++i)
                     {
-                        offset += 3;
-                        qDebug() << "Auth:" << RSN_Auth_Key(*(data + datapoint + offset));  offset += 1;
+                        qDebug() << "Auth OUI" << RSN_MacOUI(&*(data + datapoint + offset));            offset += 3;
+                        qDebug() << "Auth:" << RSN_Auth_Key(*(data + datapoint + offset));              offset += 1;
                     }
                 }
                 break;
@@ -420,6 +422,7 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
 
             case IEEE80211_ELEMID_VENDOR:
                 break;
+
         }
 
         datapoint += ELELen;
@@ -445,20 +448,12 @@ QString RSN_MacOUI(const u_char* OUI) {
 }
 
 const char* RSN_Cipher_Suite(int type) {
-    /*
-     *  RSN Cipher Suite
-     *  1  WEP
-     *  2  TKIP
-     *  3  WRAP
-     *  4  CCMP
-     *  5  WEP-104
-     */
     const char* typeList[] = {"",
-        "WEP",
-        "TKIP",
-        "WRAP",
-        "CCMP",
-        "WEP-104",
+        "WEP",      /* 1 */
+        "TKIP",     /* 2 */
+        "WRAP",     /* 3 */
+        "CCMP",     /* 4 */
+        "WEP-104",  /* 5 */
     };
 
     if (type <= 5)
@@ -468,16 +463,10 @@ const char* RSN_Cipher_Suite(int type) {
 }
 
 const char* RSN_Auth_Key(int type) {
-    /*
-     *  RSN Auth Key Management
-     *  1  802.1X
-     *  2  PSK
-     *  3  FT over 802.1X
-     */
     const char* typeList[] = {"",
-        "802.1X",
-        "PSK",
-        "FT over 802.1X",
+        "802.1X",           /* 1 */
+        "PSK",              /* 2 */
+        "FT over 802.1X",   /* 3 */
     };
 
     if (type <= 3)
@@ -497,7 +486,7 @@ inline void MGT_Beacon_Interval(const u_char *data, int datapoint) {
 
 void MGT_Capability_Info(const u_char *data, int datapoint) {
     /* Capabilities Information */
-    switch (IEEE80211_BEACON_CAPABILITY(data + datapoint) & 0xFFFF)
+    switch (IEEE80211_CAPABILITY(data + datapoint) & 0xFFFF)
     {
         case IEEE80211_CAPINFO_ESS:
             break;
@@ -539,3 +528,13 @@ void MGT_Capability_Info(const u_char *data, int datapoint) {
             break;
     }
 }
+
+//#undef IEEE80211_CAPABILITY(beacon)
+
+//void MGT_Reason_Code() {u
+
+//}
+
+//void MGT_Status_Code() {
+
+//}

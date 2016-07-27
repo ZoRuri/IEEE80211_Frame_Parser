@@ -1117,4 +1117,9 @@ struct ieee80211_duration {
 				 IEEE80211_DUR_DS_SLOW_PLCPHDR + \
 				 IEEE80211_DUR_DIFS)
 
+/* added */
+/* Not only Beacon but also other subtypes */
+    #define IEEE80211_CAPABILITY(beacon) \
+        ((beacon)[0] | ((beacon)[1] << 8))
+
 #endif /* _NET80211_IEEE80211_H_ */
