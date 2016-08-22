@@ -19,12 +19,169 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
 QString MacADDR(u_int8_t* ADDR);
 QString RSN_MacOUI(const u_char* OUI);
 
-const char* RSN_Cipher_Suite(int type);
-const char* RSN_Auth_Key(int type);
-
 void MGT_Timestamp(const u_char *data, int datapoint);
 void MGT_Beacon_Interval(const u_char *data, int datapoint);
 void MGT_Capability_Info(const u_char *data, int datapoint);
+
+const char *RSN_Cipher_Suite[] = {"",
+    "WEP",      /* 1 */
+    "TKIP",     /* 2 */
+    "WRAP",     /* 3 */
+    "CCMP",     /* 4 */
+    "WEP-104",  /* 5 */
+};
+
+const char *RSN_Auth_Key[] = {"",
+    "802.1X",           /* 1 */
+    "PSK",              /* 2 */
+    "FT over 802.1X",   /* 3 */
+};
+
+const char *Status_Code[] = {
+    "Successful",                                           /*  0 */
+    "Unspecified failure",                                  /*  1 */
+    "Not used",                                             /*  2 */
+    "Not used",                                             /*  3 */
+    "Not used",                                             /*  4 */
+    "Not used",                                             /*  5 */
+    "Not used",                                             /*  6 */
+    "Not used",                                             /*  7 */
+    "Not used",                                             /*  8 */
+    "Not used",                                             /*  9 */
+    "Cannot support all requested capabilities in the Capability "
+    "Information field",                                    /* 10 */
+    "Reassociation denied due to inability to confirm that "
+    "association exists",                                   /* 11 */
+    "Association denied due to reason outside the scope of "
+    "this standard",                                        /* 12 */
+    "Responding station does not support the specified "
+    "authentication algorithm",                             /* 13 */
+    "Received an Authentication frame with authentication ",
+    "transaction sequence number out of expected sequence", /* 14 */
+    "Authentication rejected because of challenge failure", /* 15 */
+    "Authentication rejected due to timeout waiting for "
+    "next frame in sequence",                               /* 16 */
+    "Association denied because AP is unable to handle "
+    "additional associated stations",                       /* 17 */
+    "Association denied due to requesting station not supporting all "
+    "of the data rates in the BSSBasicRateSet parameter",   /* 18 */
+    "Association denied due to requesting station not supporting "
+    "the short preamble option",                            /* 19 */
+    "Association denied due to requesting station not supporting "
+    "the PBCC modulation option",                           /* 20 */
+    "Association denied due to requesting station not supporting "
+    "the Channel Agility option",                           /* 21 */
+    "Association request rejected because Spectrum Management "
+    "capability is required",                               /* 22 */
+    "Association request rejected because the information "
+    "in the Power Capability element is unacceptable",      /* 23 */
+    "Association request rejected because the information "
+    "in the Supported Channels element is unacceptable",    /* 24 */
+    "Association denied due to requesting station not supporting "
+    "the Short Slot Time option",                           /* 25 */
+    "Association denied due to requesting station not supporting "
+    "the DSSS-OFDM option",                                 /* 26 */
+    "Reserved",                                             /* 27 */
+    "Reserved",                                             /* 28 */
+    "Reserved",                                             /* 29 */
+    "Reserved",                                             /* 30 */
+    "Reserved",                                             /* 31 */
+    "Unspecified, QoS-related failure",                     /* 32 */
+    "Association denied because QAP has insufficient bandwidth "
+    "to handle another QSTA",                               /* 33 */
+    "Association denied due to excessive frame loss rates and/or "
+    "poor conditions on current operating channel",         /* 34 */
+    "Association (with QBSS) denied because the requesting "
+    "STA does not support the QoS facility",                /* 35 */
+    "Reserved in 802.11",                                   /* 36 */
+    "The request has been decline",                         /* 37 */
+    "The request has not been successful as one or more "
+    "parameters have invalid values",                       /* 38 */
+    "The TS has not been created because the request cannot be honored; "
+    "however, a suggested TSPEC is provided so that the initiating "
+    "QSTA may attempt to set another TS with the suggested "
+    "changes to the TSPEC",                                 /* 39 */
+    "Invalid information element",                          /* 40 */
+    "Invalid group cipher",                                 /* 41 */
+    "Invalid pairwise cipher",                              /* 42 */
+    "Invalid AKMP",                                         /* 43 */
+    "Unsupported RSN information element version",          /* 44 */
+    "Invalid RSN information element capabilities",         /* 45 */
+    "Cipher suite rejected because of security policy",     /* 46 */
+    "The TS has not been created; however, the HC may be capable of "
+    "creating a TS, in response to a request, after the "
+    "time indicated in the TS Delay element",               /* 47 */
+    "Direct link is not allowed in the BSS by policy",      /* 48 */
+    "Destination STA is not present within this QBSS",      /* 49 */
+    "The Destination STA is not a QSTA",                    /* 50 */
+    "Association denied because the ListenInterval is "
+    "too large",                                            /* 51 */
+
+    /*
+     * reference : https://supportforums.cisco.com/document/141136/80211-association-status-80211-deauth-reason-codes
+     */
+};
+
+const char *Reason_Code[] = {
+    "Reserved",                                             /*  0 */
+    "Unspecified reason",                                   /*  1 */
+    "Previous authentication no longer valid",              /*  2 */
+    "station is leaving (or has left) IBSS or ESS",         /*  3 */
+    "Disassociated due to inactivity",                      /*  4 */
+    "Disassociated because AP is unable to handle all currently "
+    "associated stations",                                  /*  5 */
+    "Class 2 frame received from nonauthenticated station", /*  6 */
+    "Class 3 frame received from nonassociated station",    /*  7 */
+    "Disassociated because sending station is leaving "
+    "(or has left) BSS",                                    /*  8 */
+    "Station requesting (re)association is not authenticated "
+    "with responding station",                              /*  9 */
+    "Disassociated because the information in the Power Capability "
+    "element is unacceptable",                              /* 10 */
+    "Disassociated because the information in the Supported Channels "
+    "element is unacceptable",                              /* 11 */
+    "Reserved",                                             /* 12 */
+    "Invalid information element",                          /* 13 */
+    "Message integrity code (MIC) failure",                 /* 14 */
+    "4-Way Handshake timeout",                              /* 15 */
+    "Group Key Handshake timeout",                          /* 16 */
+    "Information element in 4-Way Handshake different from "
+    "(Re)Association Request/Probe Response/Beacon frame",  /* 17 */
+    "Invalid group cipher",                                 /* 18 */
+    "Invalid pairwise cipher",                              /* 19 */
+    "Invalid AKMP",                                         /* 20 */
+    "Unsupported RSN information element version",          /* 21 */
+    "Invalid RSN information element capabilities",         /* 22 */
+    "IEEE 802.1X authentication failed",                    /* 23 */
+    "Cipher suite rejected because of the security policy"  /* 24 */
+    "Reserved",                                             /* 25 */
+    "Reserved",                                             /* 26 */
+    "Reserved",                                             /* 27 */
+    "Reserved",                                             /* 28 */
+    "Reserved",                                             /* 29 */
+    "Reserved",                                             /* 30 */
+    "Reserved",                                             /* 31 */
+    "Disassociated for unspecified, QoS-related reason",    /* 32 */
+    "Disassociated because QAP lacks sufficient bandwidth "
+    "for this QSTA",                                        /* 33 */
+    "Disassociated because excessive number of frames need to "
+    "be acknowledged, but are not acknowledged due to "
+    "AP transmissions and/or poor channel conditions",      /* 34 */
+    "Disassociated because QSTA is transmitting outside the "
+    "limits of its TXOPs",                                  /* 35 */
+    "Requested from peer QSTA as the QSTA is leaving "
+    "the QBSS (or resetting)",                              /* 36 */
+    "Requested from peer QSTA as it does not want to use "
+    "the mechanism",                                        /* 37 */
+    "Requested from peer QSTA as the QSTA received frames using "
+    "the mechanism for which a setup is required",          /* 38 */
+    "Requested from peer QSTA due to timeout",              /* 39 */
+    "Peer QSTA does not support the requested cipher suite",/* 40 */
+
+    /*
+     * reference : https://supportforums.cisco.com/document/141136/80211-association-status-80211-deauth-reason-codes
+     */
+};
 
 int main(int argc, char *argv[])
 {
@@ -93,7 +250,7 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
      *  ATIM         |           |           |           |           |           |           |           |        |        |     |
      */
 
-    int datapoint = RADIOTAPLEN + sizeof(*fdh); /* radiotap length + frame lenth */
+    int datapoint = RADIOTAPLEN + sizeof(*fdh); /* radiotap length + frame length */
 
     /*  Management Frame Subtype */
     switch(fdh->i_fc[0] & IEEE80211_FC0_SUBTYPE_MASK)
@@ -103,9 +260,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_ASSOC_RESP:
-            /* CPB Information */   datapoint += 2;
-            /* Status code */       datapoint += 2;
-            /* Association ID */    datapoint += 2;
+            MGT_Capability_Info(data, datapoint);   datapoint += 2;
+            /* Status code */                       datapoint += 2;
+            /* Association ID */                    datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_REQ:
@@ -113,9 +270,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_RESP:
-            /* CPB Information */   datapoint += 2;
-            /* Status code */       datapoint += 2;
-            /* Association ID */    datapoint += 2;
+            MGT_Capability_Info(data, datapoint);   datapoint += 2;
+            /* Status code */                       datapoint += 2;
+            /* Association ID */                    datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_REQ:
@@ -278,7 +435,7 @@ ieee80211_frame *IEEE80211_DS_ADDR(const u_char *data) {
 
 void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkthdr *pkthdr) {
     /* Check Elements ID */
-    while(datapoint < (int)pkthdr->caplen - 4)      /* Packet Length - Frame check sequence(4) */
+    while(datapoint < (int)pkthdr->caplen - 4)      /* Packet Length - Frame check sequence(4Bytes) */
     {
 
         int ELEMID = *(data + datapoint);
@@ -327,6 +484,10 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
                 break;
 
             case IEEE80211_ELEMID_TIM:          /* Traffic Indication Map */
+                qDebug() << "DTIM Count:" << *(data + datapoint);           /* DTIM Count */
+                qDebug() << "DTIM Period:" << *(data + datapoint + 1);      /* DTIM Period */
+                qDebug() << "Bitmap Control:" << *(data + datapoint + 2);   /* Bitmap Control */
+                                                                            /* Partial Virtual Bitmap */
                 break;
 
             case IEEE80211_ELEMID_IBSSPARMS:
@@ -380,20 +541,25 @@ void IEEE80211_Information_Elements(const u_char *data, int datapoint, pcap_pkth
             case IEEE80211_ELEMID_RSN:          /* Robust Secure Network (Encryption & Authentication) */
                 {
                     int offset = 0;
+
                     qDebug() << "RSN Version:" << *((u_int16_t*)(data + datapoint));                    offset += 2;
                     qDebug() << "Group_Cipher_OUI" << RSN_MacOUI(&*(data + datapoint + offset));        offset += 3;
-                    qDebug() << "Group_Cipher" << RSN_Cipher_Suite((int)*(data + datapoint + offset));  offset += 1;
+                    qDebug() << "Group_Cipher" << RSN_Cipher_Suite[*(data + datapoint + offset)];       offset += 1;
+
                     int PairwireCount = *((u_int16_t*)(data + datapoint + offset));                     offset += 2;
+
                     for (int i = 0; i < PairwireCount; ++i)
                     {
                         qDebug() << "Pairwire OUI" << RSN_MacOUI(&*(data + datapoint + offset));        offset += 3;
-                        qDebug() << "Pairwire:" << RSN_Cipher_Suite(*(data + datapoint + offset));      offset += 1;
+                        qDebug() << "Pairwire:" << RSN_Cipher_Suite[*(data + datapoint + offset)];      offset += 1;
                     }
+
                     int AuthCount = *((u_int16_t*)(data + datapoint + offset));                         offset += 2;
+
                     for (int i = 0; i < AuthCount; ++i)
                     {
                         qDebug() << "Auth OUI" << RSN_MacOUI(&*(data + datapoint + offset));            offset += 3;
-                        qDebug() << "Auth:" << RSN_Auth_Key(*(data + datapoint + offset));              offset += 1;
+                        qDebug() << "Auth:" << RSN_Auth_Key[*(data + datapoint + offset)];              offset += 1;
                     }
                 }
                 break;
@@ -445,34 +611,6 @@ QString RSN_MacOUI(const u_char* OUI) {
     MacOUI.sprintf("%02X-%02X-%02X", OUI[0], OUI[1], OUI[2]);
 
     return MacOUI;
-}
-
-const char* RSN_Cipher_Suite(int type) {
-    const char* typeList[] = {"",
-        "WEP",      /* 1 */
-        "TKIP",     /* 2 */
-        "WRAP",     /* 3 */
-        "CCMP",     /* 4 */
-        "WEP-104",  /* 5 */
-    };
-
-    if (type <= 5)
-        return typeList[type];
-    else
-        return 0;
-}
-
-const char* RSN_Auth_Key(int type) {
-    const char* typeList[] = {"",
-        "802.1X",           /* 1 */
-        "PSK",              /* 2 */
-        "FT over 802.1X",   /* 3 */
-    };
-
-    if (type <= 3)
-        return typeList[type];
-    else
-        return 0;
 }
 
 inline void MGT_Timestamp(const u_char *data, int datapoint) {
@@ -528,13 +666,3 @@ void MGT_Capability_Info(const u_char *data, int datapoint) {
             break;
     }
 }
-
-//#undef IEEE80211_CAPABILITY(beacon)
-
-//void MGT_Reason_Code() {u
-
-//}
-
-//void MGT_Status_Code() {
-
-//}
