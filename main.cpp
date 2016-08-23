@@ -40,21 +40,21 @@ const char *RSN_Auth_Key[] = {"",
 const char *Status_Code[] = {
     "Successful",                                           /*  0 */
     "Unspecified failure",                                  /*  1 */
-    "Not used",                                             /*  2 */
-    "Not used",                                             /*  3 */
-    "Not used",                                             /*  4 */
-    "Not used",                                             /*  5 */
-    "Not used",                                             /*  6 */
-    "Not used",                                             /*  7 */
-    "Not used",                                             /*  8 */
-    "Not used",                                             /*  9 */
+    "Reserved",                                             /*  2 */
+    "Reserved",                                             /*  3 */
+    "Reserved",                                             /*  4 */
+    "Reserved",                                             /*  5 */
+    "Reserved",                                             /*  6 */
+    "Reserved",                                             /*  7 */
+    "Reserved",                                             /*  8 */
+    "Reserved",                                             /*  9 */
     "Cannot support all requested capabilities in the Capability "
     "Information field",                                    /* 10 */
     "Reassociation denied due to inability to confirm that "
     "association exists",                                   /* 11 */
     "Association denied due to reason outside the scope of "
     "this standard",                                        /* 12 */
-    "Responding station does not support the specified "
+    "Responding STA does not support the specified "
     "authentication algorithm",                             /* 13 */
     "Received an Authentication frame with authentication ",
     "transaction sequence number out of expected sequence", /* 14 */
@@ -63,13 +63,13 @@ const char *Status_Code[] = {
     "next frame in sequence",                               /* 16 */
     "Association denied because AP is unable to handle "
     "additional associated stations",                       /* 17 */
-    "Association denied due to requesting station not supporting all "
-    "of the data rates in the BSSBasicRateSet parameter",   /* 18 */
-    "Association denied due to requesting station not supporting "
+    "Association denied due to requesting STA not supporting all of "
+    "the data rates in the BSSBasicRateSet parameter",      /* 18 */
+    "Association denied due to requesting STA not supporting "
     "the short preamble option",                            /* 19 */
-    "Association denied due to requesting station not supporting "
+    "Association denied due to requesting STA not supporting "
     "the PBCC modulation option",                           /* 20 */
-    "Association denied due to requesting station not supporting "
+    "Association denied due to requesting STA not supporting "
     "the Channel Agility option",                           /* 21 */
     "Association request rejected because Spectrum Management "
     "capability is required",                               /* 22 */
@@ -77,9 +77,9 @@ const char *Status_Code[] = {
     "in the Power Capability element is unacceptable",      /* 23 */
     "Association request rejected because the information "
     "in the Supported Channels element is unacceptable",    /* 24 */
-    "Association denied due to requesting station not supporting "
+    "Association denied due to requesting STA not supporting "
     "the Short Slot Time option",                           /* 25 */
-    "Association denied due to requesting station not supporting "
+    "Association denied due to requesting STA not supporting "
     "the DSSS-OFDM option",                                 /* 26 */
     "Reserved",                                             /* 27 */
     "Reserved",                                             /* 28 */
@@ -87,19 +87,19 @@ const char *Status_Code[] = {
     "Reserved",                                             /* 30 */
     "Reserved",                                             /* 31 */
     "Unspecified, QoS-related failure",                     /* 32 */
-    "Association denied because QAP has insufficient bandwidth "
-    "to handle another QSTA",                               /* 33 */
+    "Association denied because QoS AP has insufficient bandwidth "
+    "to handle another QoS STA",                            /* 33 */
     "Association denied due to excessive frame loss rates and/or "
     "poor conditions on current operating channel",         /* 34 */
-    "Association (with QBSS) denied because the requesting "
+    "Association (with QoS BSS) denied because the requesting "
     "STA does not support the QoS facility",                /* 35 */
-    "Reserved in 802.11",                                   /* 36 */
+    "Reserved",                                             /* 36 */
     "The request has been decline",                         /* 37 */
     "The request has not been successful as one or more "
     "parameters have invalid values",                       /* 38 */
-    "The TS has not been created because the request cannot be honored; "
-    "however, a suggested TSPEC is provided so that the initiating "
-    "QSTA may attempt to set another TS with the suggested "
+    "The TS has not been created because the request cannot be "
+    "honored; however, a suggested TSPEC is provided so that the "
+    "initiating STA may attempt to set another TS with the suggested "
     "changes to the TSPEC",                                 /* 39 */
     "Invalid information element",                          /* 40 */
     "Invalid group cipher",                                 /* 41 */
@@ -113,12 +113,12 @@ const char *Status_Code[] = {
     "time indicated in the TS Delay element",               /* 47 */
     "Direct link is not allowed in the BSS by policy",      /* 48 */
     "Destination STA is not present within this QBSS",      /* 49 */
-    "The Destination STA is not a QSTA",                    /* 50 */
+    "The Destination STA is not a QoS STA",                 /* 50 */
     "Association denied because the ListenInterval is "
     "too large",                                            /* 51 */
 
     /*
-     * reference : https://supportforums.cisco.com/document/141136/80211-association-status-80211-deauth-reason-codes
+     * reference : http://www.ie.itcr.ac.cr/acotoc/Ingenieria/Lab%20TEM%20II/Antenas/Especificacion%20802%2011-2007.pdf
      */
 };
 
@@ -126,16 +126,17 @@ const char *Reason_Code[] = {
     "Reserved",                                             /*  0 */
     "Unspecified reason",                                   /*  1 */
     "Previous authentication no longer valid",              /*  2 */
-    "station is leaving (or has left) IBSS or ESS",         /*  3 */
+    "Deauthenticated because sending STA is leaving "
+    "(or has left) IBSS or ESS",                            /*  3 */
     "Disassociated due to inactivity",                      /*  4 */
     "Disassociated because AP is unable to handle all currently "
-    "associated stations",                                  /*  5 */
-    "Class 2 frame received from nonauthenticated station", /*  6 */
-    "Class 3 frame received from nonassociated station",    /*  7 */
-    "Disassociated because sending station is leaving "
+    "associated STAs",                                      /*  5 */
+    "Class 2 frame received from nonauthenticated STA",     /*  6 */
+    "Class 3 frame received from nonassociated STA",        /*  7 */
+    "Disassociated because sending STA is leaving "
     "(or has left) BSS",                                    /*  8 */
-    "Station requesting (re)association is not authenticated "
-    "with responding station",                              /*  9 */
+    "STA requesting (re)association is not authenticated "
+    "with responding STA",                                  /*  9 */
     "Disassociated because the information in the Power Capability "
     "element is unacceptable",                              /* 10 */
     "Disassociated because the information in the Supported Channels "
@@ -162,24 +163,29 @@ const char *Reason_Code[] = {
     "Reserved",                                             /* 30 */
     "Reserved",                                             /* 31 */
     "Disassociated for unspecified, QoS-related reason",    /* 32 */
-    "Disassociated because QAP lacks sufficient bandwidth "
-    "for this QSTA",                                        /* 33 */
+    "Disassociated because QoS AP lacks sufficient bandwidth "
+    "for this QoS STA",                                     /* 33 */
     "Disassociated because excessive number of frames need to "
     "be acknowledged, but are not acknowledged due to "
     "AP transmissions and/or poor channel conditions",      /* 34 */
-    "Disassociated because QSTA is transmitting outside the "
-    "limits of its TXOPs",                                  /* 35 */
-    "Requested from peer QSTA as the QSTA is leaving "
-    "the QBSS (or resetting)",                              /* 36 */
-    "Requested from peer QSTA as it does not want to use "
+    "Disassociated because STA is transmitting outside "
+    "the limits of its TXOPs",                              /* 35 */
+    "Requested from peer STA as the STA is leaving the BSS "
+    "(or resetting)",                                       /* 36 */
+    "Requested from peer STA as it does not want to use "
     "the mechanism",                                        /* 37 */
-    "Requested from peer QSTA as the QSTA received frames using "
+    "Requested from peer STA as the STA received frames using "
     "the mechanism for which a setup is required",          /* 38 */
-    "Requested from peer QSTA due to timeout",              /* 39 */
-    "Peer QSTA does not support the requested cipher suite",/* 40 */
+    "Requested from peer STA due to timeout",               /* 39 */
+    "Reserved",                                             /* 40 */
+    "Reserved",                                             /* 41 */
+    "Reserved",                                             /* 42 */
+    "Reserved",                                             /* 43 */
+    "Reserved",                                             /* 44 */
+    "Peer STA does not support the requested cipher suite", /* 45 */
 
     /*
-     * reference : https://supportforums.cisco.com/document/141136/80211-association-status-80211-deauth-reason-codes
+     * reference : http://www.ie.itcr.ac.cr/acotoc/Ingenieria/Lab%20TEM%20+II/Antenas/Especificacion%20802%2011-2007.pdf
      */
 };
 
@@ -260,9 +266,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_ASSOC_RESP:
-            MGT_Capability_Info(data, datapoint);   datapoint += 2;
-            /* Status code */                       datapoint += 2;
-            /* Association ID */                    datapoint += 2;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
+            Status_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
+            /* Association ID */                            datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_REQ:
@@ -270,9 +276,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_RESP:
-            MGT_Capability_Info(data, datapoint);   datapoint += 2;
-            /* Status code */                       datapoint += 2;
-            /* Association ID */                    datapoint += 2;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
+            Status_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
+            /* Association ID */                            datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_PROBE_REQ:
@@ -281,14 +287,14 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
 
         case IEEE80211_FC0_SUBTYPE_PROBE_RESP:
             MGT_Timestamp(data, datapoint);
-            MGT_Beacon_Interval(data, datapoint);   datapoint += 10;
-            MGT_Capability_Info(data, datapoint);   datapoint += 2;
+            MGT_Beacon_Interval(data, datapoint);           datapoint += 10;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_BEACON:
             MGT_Timestamp(data, datapoint);
-            MGT_Beacon_Interval(data, datapoint);   datapoint += 10;
-            MGT_Capability_Info(data, datapoint);   datapoint += 2;
+            MGT_Beacon_Interval(data, datapoint);           datapoint += 10;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ATIM:
@@ -296,17 +302,17 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_DISASSOC:
-            /* Reason code */   datapoint += 2;
+            Reason_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_AUTH:
             /* Auth Algo */     datapoint += 2;
             /* Auth SEQ */      datapoint += 2;
-            /* Status code */   datapoint += 2;
+            Status_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_DEAUTH:
-            /* Reason code */   datapoint += 2;
+            Reason_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ACTION:
