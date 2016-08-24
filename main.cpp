@@ -37,6 +37,11 @@ const char *RSN_Auth_Key[] = {"",
     "FT over 802.1X",   /* 3 */
 };
 
+const char *Auth_Algo[] = {
+    "Open System",      /* 0 */
+    "Shared Key",       /* 1 */
+};
+
 const char *Status_Code[] = {
     "Successful",                                           /*  0 */
     "Unspecified failure",                                  /*  1 */
@@ -262,7 +267,8 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
     switch(fdh->i_fc[0] & IEEE80211_FC0_SUBTYPE_MASK)
     {
         case IEEE80211_FC0_SUBTYPE_ASSOC_REQ:
-            datapoint += 4;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
+            /* Listen Interval */                           datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_ASSOC_RESP:
@@ -272,7 +278,9 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_REQ:
-            datapoint += 6;
+            MGT_Capability_Info(data, datapoint);           datapoint += 2;
+            /* Listen Interval */                           datapoint += 2;
+            /* Current AP */                                datapoint += 2;
             break;
 
         case IEEE80211_FC0_SUBTYPE_REASSOC_RESP:
@@ -306,8 +314,8 @@ void IEEE80211_MGT_Frame(const u_char *data, ieee80211_frame *fdh, pcap_pkthdr *
             break;
 
         case IEEE80211_FC0_SUBTYPE_AUTH:
-            /* Auth Algo */     datapoint += 2;
-            /* Auth SEQ */      datapoint += 2;
+            Auth_Algo[*((u_int16_t*)(data + datapoint))];   datapoint += 2;
+            /* Auth SEQ */                                  datapoint += 2;
             Status_Code[*((u_int16_t*)(data + datapoint))]; datapoint += 2;
             break;
 
